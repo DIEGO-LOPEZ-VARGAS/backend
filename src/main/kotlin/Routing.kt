@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
+
 @Serializable
 data class LoginRequest(
     val usuario: String,
@@ -26,6 +27,7 @@ data class RailwayStatusResponse(
     val latencyMs: Long,
     val routes: List<RouteInfo>
 )
+
 @Serializable
 data class UsuarioRama1(
     val id: Int,
@@ -33,6 +35,15 @@ data class UsuarioRama1(
     val rol: String,
     val status: String
 )
+
+@Serializable
+data class AlmacenamientoDiego(
+    val id: Int,
+    val producto: String,
+    val cantidad: Int,
+    val ubicacion: String
+)
+
 fun Application.configureRouting() {
 
     routing {
@@ -100,21 +111,71 @@ fun Application.configureRouting() {
                             "GET",
                             "/api/railway/status",
                             "Estado del servidor"
+                        ),
+                        RouteInfo(
+                            "GET",
+                            "/api/rama1/usuarios",
+                            "Consulta de usuarios Rama 1"
+                        ),
+                        RouteInfo(
+                            "GET",
+                            "/api/diego/almacenamiento",
+                            "Inventario de almacenamiento Rama Diego"
                         )
                     )
                 )
             )
         }
+
         get("/api/rama1/usuarios") {
-            // Creamos una lista real usando tu modelo de datos
+
             val listaUsuarios = listOf(
-                UsuarioRama1(1, "Ambar Jezabel ", "Rama 1", "Activo"),
+                UsuarioRama1(1, "Ambar Jezabel", "Rama 1", "Activo"),
                 UsuarioRama1(2, "Diego López", "Rama Administrador", "Offline"),
                 UsuarioRama1(3, "Gabi", "Rama 2", "Activo")
             )
 
-            // Ktor la convierte a JSON automáticamente gracias a @Serializable
-            call.respond(HttpStatusCode.OK, listaUsuarios)
+            call.respond(
+                HttpStatusCode.OK,
+                listaUsuarios
+            )
+        }
+
+        // ===== ENDPOINT DE DIEGO =====
+
+        get("/api/diego/almacenamiento") {
+
+            val inventario = listOf(
+                AlmacenamientoDiego(
+                    id = 1,
+                    producto = "Albahaca",
+                    cantidad = 25,
+                    ubicacion = "Estante A"
+                ),
+                AlmacenamientoDiego(
+                    id = 2,
+                    producto = "Tomate",
+                    cantidad = 40,
+                    ubicacion = "Estante B"
+                ),
+                AlmacenamientoDiego(
+                    id = 3,
+                    producto = "Lechuga",
+                    cantidad = 18,
+                    ubicacion = "Refrigerador"
+                ),
+                AlmacenamientoDiego(
+                    id = 4,
+                    producto = "Cilantro",
+                    cantidad = 30,
+                    ubicacion = "Estante C"
+                )
+            )
+
+            call.respond(
+                HttpStatusCode.OK,
+                inventario
+            )
         }
     }
 }
