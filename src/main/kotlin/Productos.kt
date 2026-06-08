@@ -61,5 +61,42 @@ fun Application.configureProductos() {
                 )
             )
         }
+
+        get("/api/rama2/compras") {
+            val compras = listOf(
+                Producto(
+                    id = 4,
+                    nombre_producto = "Leche",
+                    cantidad = 0,
+                    fecha_caducidad = "2026-06-01",
+                    tipo_almacenamiento = "refrigerador",
+                    disponible = false
+                ),
+                Producto(
+                    id = 5,
+                    nombre_producto = "Huevos",
+                    cantidad = 0,
+                    fecha_caducidad = "2026-06-05",
+                    tipo_almacenamiento = "despensa",
+                    disponible = false
+                ),
+                Producto(
+                    id = 6,
+                    nombre_producto = "Zanahoria",
+                    cantidad = 0,
+                    fecha_caducidad = "2026-06-03",
+                    tipo_almacenamiento = "refrigerador",
+                    disponible = false
+                )
+            )
+            call.respond(
+                HttpStatusCode.OK,
+                ProductosResponse(
+                    rama = "Rama 2 - Lista de Compras",
+                    total = compras.size,
+                    productos = compras
+                )
+            )
+        }
     }
 }
