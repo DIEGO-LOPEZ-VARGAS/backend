@@ -34,6 +34,23 @@ data class RouteInfo(
 )
 
 @Serializable
+data class Producto(
+    val id: Int,
+    val nombre_producto: String,
+    val cantidad: Int,
+    val fecha_caducidad: String,
+    val tipo_almacenamiento: String,
+    val disponible: Boolean
+)
+
+@Serializable
+data class ProductosResponse(
+    val rama: String,
+    val total: Int,
+    val productos: List<Producto>
+)
+
+@Serializable
 data class RailwayStatusResponse(
     val online: Boolean,
     val serverUrl: String,
@@ -133,7 +150,7 @@ fun Application.configureRouting() {
             call.respondText("Fruta guardada")
         }
 
-        // --- ENDPOINTS DE RECETAS (EXAMEN) ---
+        // --- ENDPOINTS DE RECETAS ---
         get("/api/recetas") {
             if (listaRecetas.isEmpty()) {
                 call.respondText("No hay recetas aún.")
@@ -152,7 +169,39 @@ fun Application.configureRouting() {
             }
         }
 
+        // --- ENDPOINTS (COMPRAS) ---
+        get("/api/rama2/productos") {
+            val lista = listOf(
+                Producto(1, "Leche", 2, "2025-12-01", "refrigerador", true),
+                Producto(2, "Arroz", 1, "2026-01-01", "despensa", true),
+                Producto(3, "Manzanas", 5, "2025-11-15", "refrigerador", true)
+            )
+            call.respond(ProductosResponse("Rama 2 - Inventario", lista.size, lista))
+        }
+
+        get("/api/rama2/compras") {
+            val lista = listOf(
+                Producto(101, "Jabón", 3, "N/A", "despensa", true),
+                Producto(102, "Pan", 2, "2025-05-25", "despensa", true),
+                Producto(103, "Queso", 1, "2025-06-01", "refrigerador", true)
+            )
+            call.respond(ProductosResponse("Rama 2 - Compras", lista.size, lista))
+        }
+
         // --- ENDPOINTS DE SISTEMA ---
+        post("/login") {
+            try {
+                val request = call.receive<LoginRequest>()
+                if (request.usuario == "admin" && request.password == "1234") {
+                    call.respond(HttpStatusCode.OK, "Login exitoso")
+                } else {
+                    call.respond(HttpStatusCode.Unauthorized, "Credenciales incorrectas")
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.BadRequest, "Error en el formato de login")
+            }
+        }
+
         get("/api/railway/status") {
             call.respond(
                 RailwayStatusResponse(
