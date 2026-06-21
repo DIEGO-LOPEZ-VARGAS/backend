@@ -6,6 +6,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.transaction
 
 @Serializable
 data class LoginRequest(
@@ -58,15 +61,18 @@ data class RailwayStatusResponse(
     val routes: List<RouteInfo>
 )
 
-// Listas en memoria para guardar datos temporalmente
-val listaFrutas = mutableListOf<Fruta>()
-val listaRecetas = mutableListOf<Receta>()
-
 fun Application.configureRouting() {
 
     routing {
 
         get("/") {
+            val frutasGuardadas = transaction {
+                Frutas.selectAll().map { it[Frutas.nombre] to it[Frutas.cantidad] }
+            }
+            val recetasGuardadas = transaction {
+                Recetas.selectAll().map { it[Recetas.titulo] }
+            }
+
             val html = """
                 <!DOCTYPE html>
                 <html lang="es">
@@ -90,7 +96,7 @@ fun Application.configureRouting() {
                 <body>
                     <div class="container">
                         <h1>🌿 Albahaca Proyecto - Dashboard</h1>
-                        <p>Estado del Servidor: <span class="status">● ONLINE</span></p>
+                        <p>Estado del Servidor: <span class="status">● ONLINE (con base de datos)</span></p>
                         
                         <div style="display: flex; gap: 20px;">
                             <div class="card" style="flex: 1;">
@@ -98,8 +104,8 @@ fun Application.configureRouting() {
                                 <table>
                                     <thead><tr><th>Nombre</th><th>Cantidad</th></tr></thead>
                                     <tbody>
-                                        ${if (listaFrutas.isEmpty()) "<tr><td colspan='2'>Vacío</td></tr>" 
-                                          else listaFrutas.joinToString("") { "<tr><td>${it.nombre}</td><td>${it.cantidad}</td></tr>" }}
+                                        ${if (frutasGuardadas.isEmpty()) "<tr><td colspan='2'>Vacío</td></tr>" 
+                                          else frutasGuardadas.joinToString("") { "<tr><td>${it.first}</td><td>${it.second}</td></tr>" }}
                                     </tbody>
                                 </table>
                             </div>
@@ -109,8 +115,8 @@ fun Application.configureRouting() {
                                 <table>
                                     <thead><tr><th>Título</th></tr></thead>
                                     <tbody>
-                                        ${if (listaRecetas.isEmpty()) "<tr><td>Vacío</td></tr>" 
-                                          else listaRecetas.joinToString("") { "<tr><td>${it.titulo}</td></tr>" }}
+                                        ${if (recetasGuardadas.isEmpty()) "<tr><td>Vacío</td></tr>" 
+                                          else recetasGuardadas.joinToString("") { "<tr><td>$it</td></tr>" }}
                                     </tbody>
                                 </table>
                             </div>
@@ -137,32 +143,51 @@ fun Application.configureRouting() {
 
         // --- ENDPOINTS DE FRUTAS ---
         get("/api/frutas") {
-            if (listaFrutas.isEmpty()) {
+            val frutas = transaction {
+                Frutas.selectAll().map { "${it[Frutas.nombre]}: ${it[Frutas.cantidad]}" }
+            }
+            if (frutas.isEmpty()) {
                 call.respondText("No hay registros.")
             } else {
-                call.respondText(listaFrutas.joinToString("\n") { "${it.nombre}: ${it.cantidad}" })
+                call.respondText(frutas.joinToString("\n"))
             }
         }
 
         post("/api/frutas") {
             val fruta = call.receive<Fruta>()
-            listaFrutas.add(fruta)
+            transaction {
+                Frutas.insert {
+                    it[nombre] = fruta.nombre
+                    it[cantidad] = fruta.cantidad
+                }
+            }
             call.respondText("Fruta guardada")
         }
 
         // --- ENDPOINTS DE RECETAS ---
         get("/api/recetas") {
-            if (listaRecetas.isEmpty()) {
+            val recetas = transaction {
+                Recetas.selectAll().map {
+                    "TÍTULO: ${it[Recetas.titulo]}\nIngredientes: ${it[Recetas.ingredientes]}"
+                }
+            }
+            if (recetas.isEmpty()) {
                 call.respondText("No hay recetas aún.")
             } else {
-                call.respondText(listaRecetas.joinToString("\n---\n") { "TÍTULO: ${it.titulo}\nIngredientes: ${it.ingredientes}" })
+                call.respondText(recetas.joinToString("\n---\n"))
             }
         }
 
         post("/api/recetas") {
             try {
                 val receta = call.receive<Receta>()
-                listaRecetas.add(receta)
+                transaction {
+                    Recetas.insert {
+                        it[titulo] = receta.titulo
+                        it[ingredientes] = receta.ingredientes
+                        it[pasos] = receta.pasos
+                    }
+                }
                 call.respondText("¡Receta guardada en el servidor!")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.BadRequest, "Error en el formato de receta")
