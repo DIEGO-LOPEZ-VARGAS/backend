@@ -26,13 +26,6 @@ data class RailwayStatusResponse(
     val latencyMs: Long,
     val routes: List<RouteInfo>
 )
-@Serializable
-data class UsuarioRama1(
-    val id: Int,
-    val nombre: String,
-    val rol: String,
-    val status: String
-)
 fun Application.configureRouting() {
 
     routing {
@@ -104,17 +97,6 @@ fun Application.configureRouting() {
                     )
                 )
             )
-        }
-        get("/api/rama1/usuarios") {
-            // Creamos una lista real usando tu modelo de datos
-            val listaUsuarios = listOf(
-                UsuarioRama1(1, "Ambar Jezabel ", "Rama 1", "Activo"),
-                UsuarioRama1(2, "Diego López", "Rama Administrador", "Offline"),
-                UsuarioRama1(3, "Gabi", "Rama 2", "Activo")
-            )
-
-            // Ktor la convierte a JSON automáticamente gracias a @Serializable
-            call.respond(HttpStatusCode.OK, listaUsuarios)
         }
     }
 }
