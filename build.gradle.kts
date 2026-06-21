@@ -8,7 +8,7 @@ group = "com.example"
 version = "1.0.0-SNAPSHOT"
 
 application {
-    mainClass = "com.example.ApplicationKt"
+    mainClass = "com.example.MainKt"
 }
 
 kotlin {
