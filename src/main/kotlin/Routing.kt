@@ -206,15 +206,20 @@ fun Application.configureRouting() {
             call.respond(
                 RailwayStatusResponse(
                     online = true,
-                    serverUrl = "http://localhost:8080",
+                    serverUrl = "https://backend-production-523ba.up.railway.app",
                     latencyMs = 1,
                     routes = listOf(
                         RouteInfo("POST", "/api/frutas", "Guardar Fruta"),
                         RouteInfo("POST", "/api/recetas", "Guardar Receta"),
-                        RouteInfo("GET", "/api/railway/status", "Estado")
+                        RouteInfo("GET", "/api/railway/status", "Estado"),
+                        RouteInfo("GET", "/api/railway/ping", "Ping")
                     )
                 )
             )
+        }
+
+        get("/api/railway/ping") {
+            call.respondText("pong")
         }
     }
 }
