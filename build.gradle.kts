@@ -25,27 +25,24 @@ val ktor_version = "3.0.1"
 val exposed_version = "0.55.0"
 
 dependencies {
-    // Ktor Server
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
     implementation("io.ktor:ktor-server-auth:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
     implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("io.ktor:ktor-server-resources:$ktor_version")
 
-    // Ktor Client
+    implementation("ch.qos.logback:logback-classic:1.5.6")
+    
+    // Client
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
 
-    // Serialization
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-
-    implementation("ch.qos.logback:logback-classic:1.5.6")
-    
-    // Database
+    // DB
     implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
