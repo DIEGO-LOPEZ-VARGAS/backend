@@ -9,7 +9,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
-import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -28,7 +28,11 @@ fun Route.productRoutes(
 ) {
     val geminiClient = HttpClient(CIO) {
         install(ContentNegotiation) {
-            json(Json { ignoreUnknownKeys = true })
+            val jsonConfig = Json {
+                ignoreUnknownKeys = true
+            }
+            // Usamos la extensión json() de io.ktor.serialization.kotlinx.json
+            json(jsonConfig)
         }
     }
     val geminiApiKey = System.getenv("GEMINI_API_KEY") ?: "TU_API_KEY_AQUI"
