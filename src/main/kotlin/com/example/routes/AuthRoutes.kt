@@ -26,8 +26,8 @@ fun Route.authRoutes(repo: UsuarioRepository) {
             // Registrar actividad de login
             dbQuery {
                 Actividades.insert {
-                    it[this.accion] = "Login"
-                    it[this.detalle] = "El usuario ${user.email} ha iniciado sesión."
+                    it[accion] = "Login"
+                    it[detalle] = "El usuario ${user.email} ha iniciado sesión."
                 }
             }
 
@@ -50,8 +50,8 @@ fun Route.authRoutes(repo: UsuarioRepository) {
             // Registrar actividad de registro
             dbQuery {
                 Actividades.insert {
-                    it[this.accion] = "Registro"
-                    it[this.detalle] = "Nuevo usuario registrado: ${req.email}"
+                    it[accion] = "Registro"
+                    it[detalle] = "Nuevo usuario registrado: ${req.email}"
                 }
             }
 

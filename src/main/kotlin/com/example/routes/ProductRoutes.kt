@@ -46,8 +46,8 @@ fun Route.productRoutes(
             val userEmail = call.userEmail()
             dbQuery {
                 Actividades.insert {
-                    it[this.accion] = "Añadir Fruta"
-                    it[this.detalle] = "Añadió ${f.nombre} (${f.cantidad}kg) - Por $userEmail"
+                    it[accion] = "Añadir Fruta"
+                    it[detalle] = "Añadió ${f.nombre} (${f.cantidad}kg) - Por $userEmail"
                 }
             }
 

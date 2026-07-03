@@ -1,47 +1,54 @@
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(ktorLibs.plugins.ktor)
-    alias(libs.plugins.kotlin.serialization)
+    kotlin("jvm") version "2.0.21"
+    id("io.ktor.plugin") version "3.0.1"
+    kotlin("plugin.serialization") version "2.0.21"
 }
 
 group = "com.example"
 version = "1.0.0-SNAPSHOT"
 
 application {
-    mainClass = "com.example.MainKt"
+    mainClass.set("com.example.ApplicationKt")
 }
 
 kotlin {
     jvmToolchain(21)
 }
 
+ktor {
+    fatJar {
+        archiveFileName.set("app-all.jar")
+    }
+}
+
+val ktor_version = "3.0.1"
+val exposed_version = "0.55.0"
+
 dependencies {
+    implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-config-yaml-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-cors-jvm:$ktor_version")
+    implementation("io.ktor:ktor-server-resources-jvm:$ktor_version")
 
-    implementation(ktorLibs.server.config.yaml)
-    implementation(ktorLibs.server.core)
-    implementation(ktorLibs.server.netty)
-    implementation(ktorLibs.server.resources)
-
-    implementation("io.ktor:ktor-server-content-negotiation-jvm:3.0.1")
-    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:3.0.1")
-    implementation("io.ktor:ktor-server-auth-jvm:3.0.1")
-    implementation("io.ktor:ktor-server-auth-jwt-jvm:3.0.1")
-    implementation("io.ktor:ktor-server-cors-jvm:3.0.1")
-
-    implementation(libs.logback.classic)
+    implementation("ch.qos.logback:logback-classic:1.5.6")
     
-    // Ktor Client for Gemini API
-    implementation("io.ktor:ktor-client-cio:3.0.1")
-    implementation("io.ktor:ktor-client-content-negotiation:3.0.1")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.1")
-
-    implementation("org.jetbrains.exposed:exposed-core:0.55.0")
-    implementation("org.jetbrains.exposed:exposed-dao:0.55.0")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.55.0")
+    // Ktor Client
+    implementation("io.ktor:ktor-client-cio-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
+    
+    implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
     implementation("org.postgresql:postgresql:42.7.4")
     implementation("com.h2database:h2:2.2.224")
-    implementation("at.favre.lib:bcrypt:0.10.2")
 
     testImplementation(kotlin("test"))
-    testImplementation(ktorLibs.server.testHost)
+    testImplementation("io.ktor:ktor-server-test-host-jvm:$ktor_version")
 }

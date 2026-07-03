@@ -15,7 +15,7 @@ object Usuarios : Table("usuarios") {
 
 object Actividades : Table("actividades") {
     val id = integer("id").autoIncrement()
-    val usuarioId = integer("usuario_id") references Usuarios.id
+    val usuarioId = integer("usuario_id").references(Usuarios.id).nullable()
     val accion = varchar("accion", 255)
     val detalle = text("detalle")
     val fecha = datetime("fecha").default(LocalDateTime.now())
