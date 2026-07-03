@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
     id("io.ktor.plugin") version "3.0.1"
     kotlin("plugin.serialization") version "2.0.21"
+    application
 }
 
 group = "com.example"
@@ -25,6 +26,7 @@ val ktor_version = "3.0.1"
 val exposed_version = "0.55.0"
 
 dependencies {
+    // Ktor Server
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
@@ -35,14 +37,14 @@ dependencies {
     implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("io.ktor:ktor-server-resources:$ktor_version")
 
-    implementation("ch.qos.logback:logback-classic:1.5.6")
-    
-    // Client
+    // Ktor Client
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
 
-    // DB
+    implementation("ch.qos.logback:logback-classic:1.5.6")
+    
+    // Database
     implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-dao:$exposed_version")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
