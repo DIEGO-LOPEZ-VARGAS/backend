@@ -9,6 +9,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -16,6 +17,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.*
 import org.jetbrains.exposed.sql.insert
 import java.time.LocalDateTime
@@ -25,7 +27,7 @@ fun Route.productRoutes(
     recRepo: RecetaRepository
 ) {
     val geminiClient = HttpClient(CIO) {
-        install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+        install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }
     }
