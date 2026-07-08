@@ -4,6 +4,9 @@ import com.example.dtos.*
 import com.example.repository.ProductoRepository
 import com.example.repository.RecetaRepository
 import com.example.models.Actividades
+import com.example.models.Frutas
+import com.example.models.Recetas
+import com.example.models.Compras
 import com.example.config.DatabaseFactory.dbQuery
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -18,9 +21,19 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.selectAll
 import java.time.LocalDateTime
+
+@Serializable
+data class ActividadDto(
+    val id: Int,
+    val accion: String,
+    val detalle: String,
+    val fecha: String
+)
 
 fun Route.productRoutes(
     prodRepo: ProductoRepository,
@@ -31,13 +44,27 @@ fun Route.productRoutes(
             val jsonConfig = Json {
                 ignoreUnknownKeys = true
             }
-            // Usamos la extensión json() de io.ktor.serialization.kotlinx.json
             json(jsonConfig)
         }
     }
     val geminiApiKey = System.getenv("GEMINI_API_KEY") ?: "TU_API_KEY_AQUI"
 
     authenticate("auth-jwt") {
+
+        // --- ACTIVIDADES ---
+        get("/api/actividades") {
+            val list = dbQuery {
+                Actividades.selectAll().map {
+                    ActividadDto(
+                        id = it[Actividades.id],
+                        accion = it[Actividades.accion],
+                        detalle = it[Actividades.detalle],
+                        fecha = it[Actividades.fecha].toString()
+                    )
+                }
+            }
+            call.respond(list)
+        }
 
         // --- FRUTAS (ADMIN ONLY) ---
         get("/api/frutas") {

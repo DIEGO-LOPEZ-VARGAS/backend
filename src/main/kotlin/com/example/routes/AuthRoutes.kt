@@ -19,20 +19,31 @@ fun Route.authRoutes(repo: UsuarioRepository) {
         val req = call.receive<LoginRequest>()
         val user = repo.findByEmail(req.usuario)
 
-        // Comparación simple de contraseña (sin hash complicado)
-        if (user != null && user.password == req.password) {
+        // Comparación segura usando el Hasher
+        if (user != null && PasswordHasher.check(req.password, user.password)) {
             val token = JwtConfig.generateToken(user.email, user.role)
 
             // Registrar actividad de login
             dbQuery {
                 Actividades.insert {
+                    it[usuarioId] = user.id
                     it[accion] = "Login"
-                    it[detalle] = "El usuario ${user.email} ha iniciado sesión."
+                    it[detalle] = "El usuario ${user.email} ha iniciado sesión con éxito."
                 }
             }
 
             call.respond(LoginResponse(200, "Éxito", token, user.role, user.nombre))
         } else {
+            // Registrar intento fallido
+            if (user != null) {
+                dbQuery {
+                    Actividades.insert {
+                        it[usuarioId] = user.id
+                        it[accion] = "Login Fallido"
+                        it[detalle] = "Intento de acceso fallido para: ${user.email}"
+                    }
+                }
+            }
             call.respond(HttpStatusCode.Unauthorized, LoginResponse(401, "Credenciales incorrectas"))
         }
     }
@@ -45,13 +56,15 @@ fun Route.authRoutes(repo: UsuarioRepository) {
                 call.respond(HttpStatusCode.Conflict, "El usuario ya existe")
                 return@post
             }
-            repo.create(req)
+            
+            val newUser = repo.create(req)
 
             // Registrar actividad de registro
             dbQuery {
                 Actividades.insert {
+                    it[usuarioId] = newUser?.id
                     it[accion] = "Registro"
-                    it[detalle] = "Nuevo usuario registrado: ${req.email}"
+                    it[detalle] = "Nuevo usuario registrado: ${req.email} (${req.nombre})"
                 }
             }
 
