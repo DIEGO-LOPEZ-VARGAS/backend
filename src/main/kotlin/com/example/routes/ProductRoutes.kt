@@ -37,23 +37,25 @@ data class ActividadDto(
     val fecha: String
 )
 
+// Cliente global para IA para evitar crear uno nuevo por cada petición
+private val geminiClient = HttpClient(CIO) {
+    install(ContentNegotiation) {
+        val jsonConfig = Json {
+            ignoreUnknownKeys = true
+        }
+        json(jsonConfig)
+    }
+    install(HttpTimeout) {
+        requestTimeoutMillis = 90000 // 90 segundos para la IA
+        connectTimeoutMillis = 90000
+        socketTimeoutMillis = 90000
+    }
+}
+
 fun Route.productRoutes(
     prodRepo: ProductoRepository,
     recRepo: RecetaRepository
 ) {
-    val geminiClient = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            val jsonConfig = Json {
-                ignoreUnknownKeys = true
-            }
-            json(jsonConfig)
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 60000 // 60 segundos de espera total
-            connectTimeoutMillis = 60000
-            socketTimeoutMillis = 60000
-        }
-    }
     val geminiApiKey = System.getenv("GEMINI_API_KEY")?.trim() ?: ""
 
     authenticate("auth-jwt") {
