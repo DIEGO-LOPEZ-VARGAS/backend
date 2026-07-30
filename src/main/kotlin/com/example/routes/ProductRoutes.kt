@@ -107,7 +107,8 @@ fun Route.productRoutes(
 
                 val prompt = "Eres un chef experto. Genera una receta estrictamente en formato JSON con la estructura { \"titulo\": \"...\", \"ingredientes\": \"...\", \"pasos\": \"...\" }. Usa estos ingredientes: ${request.ingredientes.joinToString()}. No incluyas texto fuera del JSON."
 
-                val res = geminiClient.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$geminiApiKey") {
+                // Usamos v1 y gemini-1.5-flash que es el estándar actual
+                val res = geminiClient.post("https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$geminiApiKey") {
                     contentType(ContentType.Application.Json)
                     setBody(buildJsonObject {
                         putJsonArray("contents") {
