@@ -48,7 +48,7 @@ fun Route.productRoutes(
             json(jsonConfig)
         }
     }
-    val geminiApiKey = System.getenv("GEMINI_API_KEY") ?: "TU_API_KEY_AQUI"
+    val geminiApiKey = System.getenv("GEMINI_API_KEY") ?: ""
 
     authenticate("auth-jwt") {
 
