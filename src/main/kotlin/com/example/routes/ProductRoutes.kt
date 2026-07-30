@@ -48,7 +48,7 @@ fun Route.productRoutes(
             json(jsonConfig)
         }
     }
-    val geminiApiKey = System.getenv("GEMINI_API_KEY") ?: ""
+    val geminiApiKey = System.getenv("GEMINI_API_KEY")?.trim() ?: ""
 
     authenticate("auth-jwt") {
 
@@ -113,8 +113,10 @@ fun Route.productRoutes(
 
                 val prompt = "Eres un chef experto. Genera una receta estrictamente en formato JSON con la estructura { \"titulo\": \"...\", \"ingredientes\": \"...\", \"pasos\": \"...\" }. Usa estos ingredientes: ${request.ingredientes.joinToString()}. No incluyas texto fuera del JSON."
 
-                // Volvemos a v1beta y probamos con el modelo flash
-                val res = geminiClient.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$geminiApiKey") {
+                val url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$geminiApiKey"
+                println("DEPURACION_IA: Probando URL con v1 y modelo flash (Key empieza con: ${geminiApiKey.take(5)}...)")
+
+                val res = geminiClient.post(url) {
                     contentType(ContentType.Application.Json)
                     setBody(buildJsonObject {
                         putJsonArray("contents") {
