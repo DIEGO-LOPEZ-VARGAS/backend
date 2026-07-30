@@ -102,13 +102,19 @@ fun Route.productRoutes(
         // --- IA ---
         post("/api/recetas/ia") {
             try {
+                if (geminiApiKey.isBlank()) {
+                    println("DEPURACION_IA: ERROR - La variable GEMINI_API_KEY está vacía en Railway")
+                    call.respond(HttpStatusCode.InternalServerError, "Error: Configuración de IA incompleta (falta API Key)")
+                    return@post
+                }
+
                 val request = call.receive<IngredientsRequest>()
                 println("DEPURACION_IA: Recibidos ingredientes: ${request.ingredientes}")
 
                 val prompt = "Eres un chef experto. Genera una receta estrictamente en formato JSON con la estructura { \"titulo\": \"...\", \"ingredientes\": \"...\", \"pasos\": \"...\" }. Usa estos ingredientes: ${request.ingredientes.joinToString()}. No incluyas texto fuera del JSON."
 
-                // Usamos v1 y gemini-1.5-flash que es el estándar actual
-                val res = geminiClient.post("https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$geminiApiKey") {
+                // Volvemos a v1beta y probamos con el modelo flash
+                val res = geminiClient.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$geminiApiKey") {
                     contentType(ContentType.Application.Json)
                     setBody(buildJsonObject {
                         putJsonArray("contents") {
@@ -123,14 +129,10 @@ fun Route.productRoutes(
 
                 if (res.status == HttpStatusCode.OK) {
                     val body = res.body<JsonObject>()
-                    println("DEPURACION_IA: Respuesta de Gemini recibida")
-
                     val text = body["candidates"]?.jsonArray?.get(0)?.jsonObject
                         ?.get("content")?.jsonObject
                         ?.get("parts")?.jsonArray?.get(0)?.jsonObject
                         ?.get("text")?.jsonPrimitive?.content ?: ""
-
-                    println("DEPURACION_IA: Texto extraído: $text")
 
                     val json = text.replace("```json", "").replace("```", "").trim()
                     try {
@@ -143,12 +145,10 @@ fun Route.productRoutes(
                 } else {
                     val errorBody = res.bodyAsText()
                     println("DEPURACION_IA: Error de Gemini (${res.status}): $errorBody")
-                    // Ahora enviamos el error real de Google para saber qué pasa
                     call.respond(HttpStatusCode.InternalServerError, "Google Gemini Error (${res.status}): $errorBody")
                 }
             } catch (e: Exception) {
                 println("DEPURACION_IA: Excepción en el endpoint: ${e.message}")
-                e.printStackTrace()
                 call.respond(HttpStatusCode.InternalServerError, e.message ?: "Error desconocido")
             }
         }
