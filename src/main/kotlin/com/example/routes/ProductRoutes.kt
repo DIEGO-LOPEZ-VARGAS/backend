@@ -142,7 +142,8 @@ fun Route.productRoutes(
                 } else {
                     val errorBody = res.bodyAsText()
                     println("DEPURACION_IA: Error de Gemini (${res.status}): $errorBody")
-                    call.respond(HttpStatusCode.InternalServerError, "La IA de Google respondió con un error")
+                    // Ahora enviamos el error real de Google para saber qué pasa
+                    call.respond(HttpStatusCode.InternalServerError, "Google Gemini Error (${res.status}): $errorBody")
                 }
             } catch (e: Exception) {
                 println("DEPURACION_IA: Excepción en el endpoint: ${e.message}")
