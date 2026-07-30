@@ -102,21 +102,51 @@ fun Route.productRoutes(
         post("/api/recetas/ia") {
             try {
                 val request = call.receive<IngredientsRequest>()
-                val prompt = "Eres un chef. Genera una receta JSON con {titulo, ingredientes, pasos} usando: ${request.ingredientes.joinToString()}"
+                println("DEPURACION_IA: Recibidos ingredientes: ${request.ingredientes}")
+
+                val prompt = "Eres un chef experto. Genera una receta estrictamente en formato JSON con la estructura { \"titulo\": \"...\", \"ingredientes\": \"...\", \"pasos\": \"...\" }. Usa estos ingredientes: ${request.ingredientes.joinToString()}. No incluyas texto fuera del JSON."
+
                 val res = geminiClient.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=$geminiApiKey") {
                     contentType(ContentType.Application.Json)
-                    setBody(buildJsonObject { putJsonArray("contents") { addJsonObject { putJsonArray("parts") { addJsonObject { put("text", prompt) } } } } })
+                    setBody(buildJsonObject {
+                        putJsonArray("contents") {
+                            addJsonObject {
+                                putJsonArray("parts") {
+                                    addJsonObject { put("text", prompt) }
+                                }
+                            }
+                        }
+                    })
                 }
+
                 if (res.status == HttpStatusCode.OK) {
                     val body = res.body<JsonObject>()
-                    val text = body["candidates"]?.jsonArray?.get(0)?.jsonObject?.get("content")?.jsonObject?.get("parts")?.jsonArray?.get(0)?.jsonObject?.get("text")?.jsonPrimitive?.content ?: ""
+                    println("DEPURACION_IA: Respuesta de Gemini recibida")
+
+                    val text = body["candidates"]?.jsonArray?.get(0)?.jsonObject
+                        ?.get("content")?.jsonObject
+                        ?.get("parts")?.jsonArray?.get(0)?.jsonObject
+                        ?.get("text")?.jsonPrimitive?.content ?: ""
+
+                    println("DEPURACION_IA: Texto extraído: $text")
+
                     val json = text.replace("```json", "").replace("```", "").trim()
-                    call.respond(Json.decodeFromString<RecetaDto>(json))
+                    try {
+                        val receta = Json.decodeFromString<RecetaDto>(json)
+                        call.respond(receta)
+                    } catch (e: Exception) {
+                        println("DEPURACION_IA: Error al parsear JSON: ${e.message}")
+                        call.respond(HttpStatusCode.InternalServerError, "Error al procesar la respuesta de la IA")
+                    }
                 } else {
-                    call.respond(HttpStatusCode.InternalServerError, "IA Error")
+                    val errorBody = res.bodyAsText()
+                    println("DEPURACION_IA: Error de Gemini (${res.status}): $errorBody")
+                    call.respond(HttpStatusCode.InternalServerError, "La IA de Google respondió con un error")
                 }
             } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, e.message ?: "Error")
+                println("DEPURACION_IA: Excepción en el endpoint: ${e.message}")
+                e.printStackTrace()
+                call.respond(HttpStatusCode.InternalServerError, e.message ?: "Error desconocido")
             }
         }
 

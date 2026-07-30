@@ -17,19 +17,26 @@ object DatabaseFactory {
             }
 
             try {
+                // Regex más flexible para capturar user, password y el resto (host:port/db)
                 val regex = Regex("postgresql://([^:]+):([^@]+)@(.+)")
-                val match = regex.find(dbUrl) ?: throw IllegalStateException("DATABASE_URL con formato inesperado")
-                val (user, password, hostAndDb) = match.destructured
-                val jdbcUrl = "jdbc:postgresql://$hostAndDb"
+                val match = regex.find(dbUrl)
+                
+                if (match != null) {
+                    val (user, password, hostAndDb) = match.destructured
+                    val jdbcUrl = "jdbc:postgresql://$hostAndDb"
 
-                println("Conectando a Railway Postgres: $jdbcUrl")
+                    println("Conectando a Postgres: $jdbcUrl")
 
-                Database.connect(
-                    url = jdbcUrl,
-                    driver = "org.postgresql.Driver",
-                    user = user,
-                    password = password
-                )
+                    Database.connect(
+                        url = jdbcUrl,
+                        driver = "org.postgresql.Driver",
+                        user = user,
+                        password = password
+                    )
+                } else {
+                    println("Formato de DATABASE_URL no reconocido, intentando conexión directa...")
+                    Database.connect(dbUrl, driver = "org.postgresql.Driver")
+                }
             } catch (e: Exception) {
                 println("Error parseando DB URL: ${e.message}. Usando H2 de respaldo.")
                 fallbackToH2()

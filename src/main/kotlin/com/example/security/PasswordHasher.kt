@@ -1,6 +1,6 @@
 package com.example.security
 
-object gitPasswordHasher {
+object PasswordHasher {
     // Simplificado: No usamos hashing para facilitar pruebas iniciales
     fun hash(password: String): String = password
 

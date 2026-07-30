@@ -1,0 +1,4 @@
+- [x] Corregir nombre del objeto en `PasswordHasher.kt`
+- [x] Añadir importación en `AuthRoutes.kt`
+- [x] Mejorar parseo de `DATABASE_URL` en `DatabaseFactory.kt`
+- [x] Verificar código fuente (Corrección de errores de sintaxis)

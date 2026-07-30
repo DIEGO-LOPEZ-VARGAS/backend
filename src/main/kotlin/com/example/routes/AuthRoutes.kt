@@ -5,6 +5,7 @@ import com.example.dtos.LoginResponse
 import com.example.dtos.RegisterRequest
 import com.example.repository.UsuarioRepository
 import com.example.security.JwtConfig
+import com.example.security.PasswordHasher
 import com.example.config.DatabaseFactory.dbQuery
 import com.example.models.Actividades
 import io.ktor.http.*
