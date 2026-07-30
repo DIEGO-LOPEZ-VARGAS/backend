@@ -113,9 +113,9 @@ fun Route.productRoutes(
 
                 val prompt = "Genera una receta JSON con { \"titulo\": \"...\", \"ingredientes\": \"...\", \"pasos\": \"...\" } usando: ${request.ingredientes.joinToString()}"
 
-                // Cambiamos a v1 estable para evitar el 404 de v1beta
-                val url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
-                println("DEPURACION_IA: Llamando a Gemini API v1 estable...")
+                // gemini-1.5-flash ha sido retirado. Usamos gemini-2.5-flash (Estándar 2026)
+                val url = "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent"
+                println("DEPURACION_IA: Llamando a Gemini API v1 con modelo 2.5-flash...")
 
                 val res = geminiClient.post(url) {
                     contentType(ContentType.Application.Json)
