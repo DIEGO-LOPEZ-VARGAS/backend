@@ -14,6 +14,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -46,6 +47,11 @@ fun Route.productRoutes(
                 ignoreUnknownKeys = true
             }
             json(jsonConfig)
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 60000 // 60 segundos de espera total
+            connectTimeoutMillis = 60000
+            socketTimeoutMillis = 60000
         }
     }
     val geminiApiKey = System.getenv("GEMINI_API_KEY")?.trim() ?: ""
