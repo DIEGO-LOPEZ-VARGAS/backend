@@ -111,13 +111,16 @@ fun Route.productRoutes(
                 val request = call.receive<IngredientsRequest>()
                 println("DEPURACION_IA: Recibidos ingredientes: ${request.ingredientes}")
 
-                val prompt = "Eres un chef experto. Genera una receta estrictamente en formato JSON con la estructura { \"titulo\": \"...\", \"ingredientes\": \"...\", \"pasos\": \"...\" }. Usa estos ingredientes: ${request.ingredientes.joinToString()}. No incluyas texto fuera del JSON."
+                val prompt = "Genera una receta JSON con { \"titulo\": \"...\", \"ingredientes\": \"...\", \"pasos\": \"...\" } usando: ${request.ingredientes.joinToString()}"
 
-                val url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=$geminiApiKey"
-                println("DEPURACION_IA: Probando URL con v1 y modelo flash (Key empieza con: ${geminiApiKey.take(5)}...)")
+                // URL base sin la llave expuesta
+                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+                println("DEPURACION_IA: Llamando a Gemini API v1beta con cabecera de seguridad...")
 
                 val res = geminiClient.post(url) {
                     contentType(ContentType.Application.Json)
+                    // Enviamos la llave en la cabecera, que es más seguro y robusto
+                    header("x-goog-api-key", geminiApiKey)
                     setBody(buildJsonObject {
                         putJsonArray("contents") {
                             addJsonObject {
