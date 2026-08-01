@@ -22,7 +22,7 @@ fun Route.authRoutes(repo: UsuarioRepository) {
 
         // Comparación segura usando el Hasher
         if (user != null && PasswordHasher.check(req.password, user.password)) {
-            val token = JwtConfig.generateToken(user.email, user.role)
+            val token = JwtConfig.generateToken(user.id, user.email, user.role)
 
             // Registrar actividad de login
             dbQuery {

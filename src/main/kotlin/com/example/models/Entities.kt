@@ -26,6 +26,7 @@ object Frutas : Table("frutas") {
     val id = integer("id").autoIncrement()
     val nombre = varchar("nombre", 255)
     val cantidad = integer("cantidad")
+    val usuarioId = integer("usuario_id").references(Usuarios.id).nullable()
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -34,6 +35,7 @@ object Recetas : Table("recetas") {
     val titulo = varchar("titulo", 255)
     val ingredientes = text("ingredientes")
     val pasos = text("pasos")
+    val usuarioId = integer("usuario_id").references(Usuarios.id).nullable()
     override val primaryKey = PrimaryKey(id)
 }
 

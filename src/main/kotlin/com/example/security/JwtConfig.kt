@@ -15,9 +15,10 @@ object JwtConfig {
         .withIssuer(ISSUER)
         .build()
 
-    fun generateToken(email: String, role: String): String = JWT.create()
+    fun generateToken(id: Int, email: String, role: String): String = JWT.create()
         .withSubject("Authentication")
         .withIssuer(ISSUER)
+        .withClaim("id", id)
         .withClaim("email", email)
         .withClaim("role", role)
         .withExpiresAt(Date(System.currentTimeMillis() + VALIDITY_MS))

@@ -6,15 +6,18 @@ import com.example.models.Recetas
 import org.jetbrains.exposed.sql.*
 
 class RecetaRepository {
-    suspend fun allRecetas() = dbQuery {
-        Recetas.selectAll().map { RecetaDto(it[Recetas.titulo], it[Recetas.ingredientes], it[Recetas.pasos]) }
+    suspend fun allRecetas(usuarioId: Int?) = dbQuery {
+        Recetas.selectAll()
+            .where { if (usuarioId != null) Recetas.usuarioId eq usuarioId else Op.TRUE }
+            .map { RecetaDto(it[Recetas.titulo], it[Recetas.ingredientes], it[Recetas.pasos]) }
     }
 
-    suspend fun addReceta(r: RecetaDto) = dbQuery {
+    suspend fun addReceta(r: RecetaDto, usuarioId: Int?) = dbQuery {
         Recetas.insert {
             it[titulo] = r.titulo
             it[ingredientes] = r.ingredientes
             it[pasos] = r.pasos
+            it[this.usuarioId] = usuarioId
         }
     }
 }

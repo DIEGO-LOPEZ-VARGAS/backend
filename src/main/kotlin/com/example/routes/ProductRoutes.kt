@@ -77,12 +77,14 @@ fun Route.productRoutes(
 
         // --- FRUTAS (ADMIN ONLY) ---
         get("/api/frutas") {
-            call.respond(prodRepo.allFrutas())
+            val userId = call.userId()
+            call.respond(prodRepo.allFrutas(userId))
         }
 
         post("/api/frutas") {
+            val userId = call.userId()
             val f = call.receive<FrutaDto>()
-            prodRepo.addFruta(f)
+            prodRepo.addFruta(f, userId)
 
             // Registrar actividad
             val userEmail = call.userEmail()
@@ -98,12 +100,14 @@ fun Route.productRoutes(
 
         // --- RECETAS (USER/ADMIN) ---
         get("/api/recetas") {
-            call.respond(recRepo.allRecetas())
+            val userId = call.userId()
+            call.respond(recRepo.allRecetas(userId))
         }
 
         post("/api/recetas") {
+            val userId = call.userId()
             val r = call.receive<RecetaDto>()
-            recRepo.addReceta(r)
+            recRepo.addReceta(r, userId)
             call.respond(HttpStatusCode.Created, "Guardada")
         }
 
@@ -168,16 +172,23 @@ fun Route.productRoutes(
 
         // --- COMPRAS (USER) ---
         get("/api/compras") {
-            val list = prodRepo.allCompras()
+            val userId = call.userId()
+            val list = prodRepo.allCompras(userId)
             call.respond(ProductosResponse("Lista Personal", list.size, list))
         }
 
         post("/api/compras") {
+            val userId = call.userId()
             val p = call.receive<ProductoDto>()
-            prodRepo.addCompra(p)
+            prodRepo.addCompra(p, userId)
             call.respond(HttpStatusCode.Created, "Agregado")
         }
     }
+}
+
+fun ApplicationCall.userId(): Int? {
+    val principal = principal<JWTPrincipal>()
+    return principal?.payload?.getClaim("id")?.asInt()
 }
 
 fun ApplicationCall.userEmail(): String? {
