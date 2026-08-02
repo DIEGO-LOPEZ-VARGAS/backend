@@ -47,7 +47,9 @@ object DatabaseFactory {
         }
 
         transaction {
-            SchemaUtils.create(Usuarios, Frutas, Recetas, Compras, Actividades)
+            // createMissingTablesAndColumns asegura que si añadimos una columna (como usuario_id),
+            // la base de datos se actualice sin borrar lo anterior.
+            SchemaUtils.createMissingTablesAndColumns(Usuarios, Frutas, Recetas, Compras, Actividades)
 
             // Asegurar Admin con contraseña sencilla
             val adminEmail = "admin@albahaca.com"
