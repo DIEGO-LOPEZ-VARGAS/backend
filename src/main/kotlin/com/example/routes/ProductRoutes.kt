@@ -141,6 +141,111 @@ fun Route.productRoutes(
             else call.respond(HttpStatusCode.NotFound)
         }
 
+        // --- IA NUTRICIONAL ---
+        post("/api/recetas/nutricion") {
+            try {
+                if (geminiApiKey.isBlank()) {
+                    call.respond(HttpStatusCode.InternalServerError, "Error: API Key no configurada")
+                    return@post
+                }
+                val receta = call.receive<RecetaDto>()
+                val prompt = """
+                    Analiza nutricionalmente esta receta: ${receta.titulo}.
+                    Ingredientes: ${receta.ingredientes}.
+                    Pasos: ${receta.pasos}.
+                    Devuelve ESTRICTAMENTE un JSON con: { "calorias": "...", "proteinas": "...", "grasas": "...", "carbos": "...", "consejo": "..." }.
+                    No incluyas texto extra.
+                """.trimIndent()
+
+                val res = geminiClient.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent") {
+                    contentType(ContentType.Application.Json)
+                    header("x-goog-api-key", geminiApiKey)
+                    setBody(buildJsonObject {
+                        putJsonArray("contents") {
+                            addJsonObject {
+                                putJsonArray("parts") {
+                                    addJsonObject { put("text", prompt) }
+                                }
+                            }
+                        }
+                    })
+                }
+
+                if (res.status == HttpStatusCode.OK) {
+                    val body = res.body<JsonObject>()
+                    val text = body["candidates"]?.jsonArray?.get(0)?.jsonObject
+                        ?.get("content")?.jsonObject
+                        ?.get("parts")?.jsonArray?.get(0)?.jsonObject
+                        ?.get("text")?.jsonPrimitive?.content ?: ""
+
+                    val json = text.replace("```json", "").replace("```", "").trim()
+                    call.respond(Json.parseToJsonElement(json))
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError, "Error de Gemini")
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, e.message ?: "Error")
+            }
+        }
+
+        // --- IA VISIÓN (INVENTARIO) ---
+        post("/api/inventario/vision") {
+            try {
+                val multipart = call.receiveMultipart()
+                var imageBytes: ByteArray? = null
+                
+                multipart.forEachPart { part ->
+                    if (part is PartData.FileItem) {
+                        imageBytes = part.streamProvider().readBytes()
+                    }
+                    part.dispose()
+                }
+
+                if (imageBytes == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Imagen no recibida")
+                    return@post
+                }
+
+                val prompt = "Detecta alimentos en esta imagen. Devuelve un JSON: [ { \"nombre\": \"...\", \"cantidad\": 1 } ]."
+                val base64Image = java.util.Base64.getEncoder().encodeToString(imageBytes)
+
+                val res = geminiClient.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent") {
+                    contentType(ContentType.Application.Json)
+                    header("x-goog-api-key", geminiApiKey)
+                    setBody(buildJsonObject {
+                        putJsonArray("contents") {
+                            addJsonObject {
+                                putJsonArray("parts") {
+                                    addJsonObject { put("text", prompt) }
+                                    addJsonObject {
+                                        putJsonObject("inline_data") {
+                                            put("mime_type", "image/jpeg")
+                                            put("data", base64Image)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }
+
+                if (res.status == HttpStatusCode.OK) {
+                    val body = res.body<JsonObject>()
+                    val text = body["candidates"]?.jsonArray?.get(0)?.jsonObject
+                        ?.get("content")?.jsonObject
+                        ?.get("parts")?.jsonArray?.get(0)?.jsonObject
+                        ?.get("text")?.jsonPrimitive?.content ?: ""
+
+                    val json = text.replace("```json", "").replace("```", "").trim()
+                    call.respond(Json.parseToJsonElement(json))
+                } else {
+                    call.respond(HttpStatusCode.InternalServerError, "IA Error")
+                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, e.message ?: "Error")
+            }
+        }
+
         // --- IA ---
         post("/api/recetas/ia") {
             try {
