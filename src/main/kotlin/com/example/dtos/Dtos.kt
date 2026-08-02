@@ -18,10 +18,16 @@ data class LoginResponse(
 )
 
 @Serializable
-data class FrutaDto(val nombre: String, val cantidad: Int)
+data class FrutaDto(
+    val id: Int = 0, 
+    val nombre: String, 
+    val cantidad: Int,
+    val fecha_caducidad: String = "",
+    val lugar_almacenamiento: String = "Refri"
+)
 
 @Serializable
-data class RecetaDto(val titulo: String, val ingredientes: String, val pasos: String)
+data class RecetaDto(val id: Int = 0, val titulo: String, val ingredientes: String, val pasos: String)
 
 @Serializable
 data class ProductoDto(val id: Int = 0, val nombre_producto: String, val cantidad: Int, val disponible: Boolean = true)

@@ -98,6 +98,21 @@ fun Route.productRoutes(
             call.respond(HttpStatusCode.Created, "Guardado")
         }
 
+        delete("/api/frutas/{id}") {
+            val userId = call.userId()
+            val id = call.parameters["id"]?.toIntOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+            if (prodRepo.deleteFruta(id, userId)) call.respond(HttpStatusCode.OK)
+            else call.respond(HttpStatusCode.NotFound)
+        }
+
+        put("/api/frutas/{id}") {
+            val userId = call.userId()
+            val id = call.parameters["id"]?.toIntOrNull() ?: return@put call.respond(HttpStatusCode.BadRequest)
+            val f = call.receive<FrutaDto>()
+            if (prodRepo.updateFruta(id, f, userId)) call.respond(HttpStatusCode.OK)
+            else call.respond(HttpStatusCode.NotFound)
+        }
+
         // --- RECETAS (USER/ADMIN) ---
         get("/api/recetas") {
             val userId = call.userId()
@@ -109,6 +124,21 @@ fun Route.productRoutes(
             val r = call.receive<RecetaDto>()
             recRepo.addReceta(r, userId)
             call.respond(HttpStatusCode.Created, "Guardada")
+        }
+
+        delete("/api/recetas/{id}") {
+            val userId = call.userId()
+            val id = call.parameters["id"]?.toIntOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+            if (recRepo.deleteReceta(id, userId)) call.respond(HttpStatusCode.OK)
+            else call.respond(HttpStatusCode.NotFound)
+        }
+
+        put("/api/recetas/{id}") {
+            val userId = call.userId()
+            val id = call.parameters["id"]?.toIntOrNull() ?: return@put call.respond(HttpStatusCode.BadRequest)
+            val r = call.receive<RecetaDto>()
+            if (recRepo.updateReceta(id, r, userId)) call.respond(HttpStatusCode.OK)
+            else call.respond(HttpStatusCode.NotFound)
         }
 
         // --- IA ---

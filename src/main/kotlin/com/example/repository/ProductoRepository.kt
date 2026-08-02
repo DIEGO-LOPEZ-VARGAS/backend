@@ -11,15 +11,28 @@ class ProductoRepository {
     suspend fun allFrutas(usuarioId: Int?) = dbQuery {
         Frutas.selectAll()
             .where { if (usuarioId != null) Frutas.usuarioId eq usuarioId else Op.TRUE }
-            .map { FrutaDto(it[Frutas.nombre], it[Frutas.cantidad]) }
+            .map { FrutaDto(it[Frutas.id], it[Frutas.nombre], it[Frutas.cantidad], it[Frutas.fechaCaducidad], it[Frutas.lugarAlmacenamiento]) }
     }
 
     suspend fun addFruta(f: FrutaDto, usuarioId: Int?) = dbQuery {
         Frutas.insert {
             it[nombre] = f.nombre
             it[cantidad] = f.cantidad
+            it[fechaCaducidad] = f.fecha_caducidad
+            it[lugarAlmacenamiento] = f.lugar_almacenamiento
             it[this.usuarioId] = usuarioId
         }
+    }
+
+    suspend fun deleteFruta(id: Int, usuarioId: Int?) = dbQuery {
+        Frutas.deleteWhere { (Frutas.id eq id) and (Frutas.usuarioId eq usuarioId) } > 0
+    }
+
+    suspend fun updateFruta(id: Int, f: FrutaDto, usuarioId: Int?) = dbQuery {
+        Frutas.update({ (Frutas.id eq id) and (Frutas.usuarioId eq usuarioId) }) {
+            it[nombre] = f.nombre
+            it[cantidad] = f.cantidad
+        } > 0
     }
 
     suspend fun allCompras(usuarioId: Int?) = dbQuery {
