@@ -4,6 +4,7 @@ import com.example.config.DatabaseFactory.dbQuery
 import com.example.dtos.RecetaDto
 import com.example.models.Recetas
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 class RecetaRepository {
     suspend fun allRecetas(usuarioId: Int?) = dbQuery {

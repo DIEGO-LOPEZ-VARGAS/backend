@@ -6,6 +6,7 @@ import com.example.dtos.ProductoDto
 import com.example.models.Compras
 import com.example.models.Frutas
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 class ProductoRepository {
     suspend fun allFrutas(usuarioId: Int?) = dbQuery {

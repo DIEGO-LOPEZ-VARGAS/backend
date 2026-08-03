@@ -16,6 +16,7 @@ import io.ktor.client.request.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -25,6 +26,8 @@ import io.ktor.server.routing.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
+import io.ktor.utils.io.*
+import kotlinx.io.readByteArray
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import java.time.LocalDateTime
@@ -196,7 +199,7 @@ fun Route.productRoutes(
                 
                 multipart.forEachPart { part ->
                     if (part is PartData.FileItem) {
-                        imageBytes = part.streamProvider().readBytes()
+                        imageBytes = part.provider().readRemaining().readByteArray()
                     }
                     part.dispose()
                 }

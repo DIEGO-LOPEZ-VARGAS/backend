@@ -1,4 +1,4 @@
-- [x] Corregir nombre del objeto en `PasswordHasher.kt`
-- [x] Añadir importación en `AuthRoutes.kt`
-- [x] Mejorar parseo de `DATABASE_URL` en `DatabaseFactory.kt`
-- [x] Verificar código fuente (Corrección de errores de sintaxis)
+- [x] Actualizar Gradle Wrapper a 8.10.2 (Omitido por compatibilidad, se mantuvo 8.5/8.4)
+- [x] Actualizar plugin de Ktor y parchear tareas de Shadow (Reemplazado por FatJar manual)
+- [x] Añadir importaciones faltantes en `ProductRoutes.kt` y Repositorios
+- [x] Verificar compilación con `./gradlew fatJar`

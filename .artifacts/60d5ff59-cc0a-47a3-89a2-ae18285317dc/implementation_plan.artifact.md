@@ -1,29 +1,32 @@
-# Plan de Corrección del Backend
+# Plan de Corrección de Errores del Backend
 
-El proyecto presenta errores de compilación y posibles fallos de configuración que impiden su ejecución. He identificado un error crítico en el nombre del objeto encargado del hashing de contraseñas y falta de importaciones.
+He detectado dos problemas principales:
+1. **Error de Construcción (Gradle):** Existe una incompatibilidad entre Gradle y el plugin de Shadow (usado por Ktor) debido a la eliminación de la propiedad `mainClassName` en versiones recientes de Gradle.
+2. **Errores de Compilación (Kotlin):** En `ProductRoutes.kt` faltan importaciones para el manejo de archivos `multipart` (usado en la funcionalidad de visión por IA).
 
 ## Cambios Propuestos
 
-### Componente: Seguridad y Rutas
+### Componente: Infraestructura de Construcción
 
-He detectado una inconsistencia entre la definición del `PasswordHasher` y su uso en las rutas y repositorios.
+#### [MODIFY] [gradle-wrapper.properties](file:///C:/Users/Darkar/StudioProjects/backend/gradle/wrapper/gradle-wrapper.properties)
+- Actualizar Gradle a la versión `8.10.2` para asegurar compatibilidad con Ktor 3.0.
 
-#### [MODIFY] [PasswordHasher.kt](file:///C:/Users/Darkar/StudioProjects/backend/src/main/kotlin/com/example/security/PasswordHasher.kt)
-- Corregir el nombre del objeto de `gitPasswordHasher` a `PasswordHasher`.
+#### [MODIFY] [build.gradle.kts](file:///C:/Users/Darkar/StudioProjects/backend/build.gradle.kts)
+- Actualizar el plugin de Ktor a la versión `3.0.3`.
+- Mantener el uso de `mainClass.set()`.
+- **Solución al error `mainClassName`:** Añadiremos un bloque para forzar la propiedad `mainClassName` en las tareas de Shadow si el plugin no las detecta correctamente, o desactivaremos las tareas de distribución redundantes.
 
-#### [MODIFY] [AuthRoutes.kt](file:///C:/Users/Darkar/StudioProjects/backend/src/main/kotlin/com/example/routes/AuthRoutes.kt)
-- Añadir la importación faltante: `import com.example.security.PasswordHasher`.
+### Componente: Rutas y Lógica de Negocio
 
-### Componente: Configuración de Base de Datos
-
-#### [MODIFY] [DatabaseFactory.kt](file:///C:/Users/Darkar/StudioProjects/backend/src/main/kotlin/com/example/config/DatabaseFactory.kt)
-- Mejorar la robustez del parseo de `DATABASE_URL` para evitar fallos comunes si el formato varía ligeramente.
+#### [MODIFY] [ProductRoutes.kt](file:///C:/Users/Darkar/StudioProjects/backend/src/main/kotlin/com/example/routes/ProductRoutes.kt)
+- Añadir `import io.ktor.http.content.*` para habilitar el soporte de `MultiPartData` y `PartData`.
+- Corregir el uso de `readBytes()` a `readRawBytes()` (o similar) si es necesario, y asegurar el contexto de corrutinas.
 
 ## Plan de Verificación
 
 ### Pruebas Automatizadas
-- Ejecutar `./gradlew build` para confirmar que los errores de compilación se han resuelto.
+- Ejecutar `./gradlew assemble` para verificar la construcción completa.
+- Ejecutar `./gradlew buildFatJar` para confirmar la generación del ejecutable.
 
 ### Verificación Manual
-- Iniciar la aplicación y verificar que el servidor Netty arranca en el puerto 8080 (o el puerto configurado).
-- Comprobar que la base de datos se inicializa correctamente (ya sea Postgres o H2).
+- Iniciar el servidor y probar el endpoint de visión `/api/inventario/vision` para confirmar que el manejo de imágenes funciona correctamente.

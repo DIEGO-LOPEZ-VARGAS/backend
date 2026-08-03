@@ -1,6 +1,5 @@
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("io.ktor.plugin") version "3.0.1"
     kotlin("plugin.serialization") version "2.0.21"
     application
 }
@@ -12,14 +11,18 @@ application {
     mainClass.set("com.example.ApplicationKt")
 }
 
-kotlin {
-    jvmToolchain(21)
+tasks.register<Jar>("fatJar") {
+    archiveBaseName.set("app-all")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes["Main-Class"] = "com.example.ApplicationKt"
+    }
+    from(sourceSets.main.get().output)
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
 }
 
-ktor {
-    fatJar {
-        archiveFileName.set("app-all.jar")
-    }
+kotlin {
+    jvmToolchain(21)
 }
 
 val ktor_version = "3.0.1"
