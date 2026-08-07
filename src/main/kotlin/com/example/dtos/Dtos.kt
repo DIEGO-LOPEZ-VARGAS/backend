@@ -30,7 +30,14 @@ data class FrutaDto(
 data class RecetaDto(val id: Int = 0, val titulo: String, val ingredientes: String, val pasos: String)
 
 @Serializable
-data class ProductoDto(val id: Int = 0, val nombre_producto: String, val cantidad: Int, val disponible: Boolean = true)
+data class ProductoDto(
+    val id: Int = 0,
+    val nombre_producto: String,
+    val cantidad: Int,
+    val disponible: Boolean = true,
+    val fecha_caducidad: String = "",
+    val tipo_almacenamiento: String = "Despensa"
+)
 
 @Serializable
 data class ProductosResponse(val rama: String, val total: Int, val productos: List<ProductoDto>)

@@ -46,6 +46,8 @@ object Compras : Table("compras") {
     val nombreProducto = varchar("nombre_producto", 255)
     val cantidad = integer("cantidad")
     val disponible = bool("disponible").default(true)
+    val fechaCaducidad = varchar("fecha_caducidad", 50).default("")
+    val tipoAlmacenamiento = varchar("tipo_almacenamiento", 100).default("Despensa")
     val usuarioId = integer("usuario_id").references(Usuarios.id).nullable()
     override val primaryKey = PrimaryKey(id)
 }

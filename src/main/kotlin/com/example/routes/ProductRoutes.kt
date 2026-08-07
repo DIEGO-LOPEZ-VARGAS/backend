@@ -329,6 +329,21 @@ fun Route.productRoutes(
             prodRepo.addCompra(p, userId)
             call.respond(HttpStatusCode.Created, "Agregado")
         }
+
+        delete("/api/compras/{id}") {
+            val userId = call.userId()
+            val id = call.parameters["id"]?.toIntOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+            if (prodRepo.deleteCompra(id, userId)) call.respond(HttpStatusCode.OK, "Eliminado")
+            else call.respond(HttpStatusCode.NotFound)
+        }
+
+        put("/api/compras/{id}") {
+            val userId = call.userId()
+            val id = call.parameters["id"]?.toIntOrNull() ?: return@put call.respond(HttpStatusCode.BadRequest)
+            val p = call.receive<ProductoDto>()
+            if (prodRepo.updateCompra(id, p, userId)) call.respond(HttpStatusCode.OK, "Actualizado")
+            else call.respond(HttpStatusCode.NotFound)
+        }
     }
 }
 

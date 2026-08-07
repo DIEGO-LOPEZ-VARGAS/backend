@@ -40,7 +40,14 @@ class ProductoRepository {
         Compras.selectAll()
             .where { if (usuarioId != null) Compras.usuarioId eq usuarioId else Op.TRUE }
             .map {
-                ProductoDto(it[Compras.id], it[Compras.nombreProducto], it[Compras.cantidad], it[Compras.disponible])
+                ProductoDto(
+                    it[Compras.id], 
+                    it[Compras.nombreProducto], 
+                    it[Compras.cantidad], 
+                    it[Compras.disponible],
+                    it[Compras.fechaCaducidad],
+                    it[Compras.tipoAlmacenamiento]
+                )
             }
     }
 
@@ -49,7 +56,23 @@ class ProductoRepository {
             it[nombreProducto] = p.nombre_producto
             it[cantidad] = p.cantidad
             it[disponible] = p.disponible
+            it[fechaCaducidad] = p.fecha_caducidad
+            it[tipoAlmacenamiento] = p.tipo_almacenamiento
             it[this.usuarioId] = usuarioId
         }
+    }
+
+    suspend fun deleteCompra(id: Int, usuarioId: Int?) = dbQuery {
+        Compras.deleteWhere { (Compras.id eq id) and (Compras.usuarioId eq usuarioId) } > 0
+    }
+
+    suspend fun updateCompra(id: Int, p: ProductoDto, usuarioId: Int?) = dbQuery {
+        Compras.update({ (Compras.id eq id) and (Compras.usuarioId eq usuarioId) }) {
+            it[nombreProducto] = p.nombre_producto
+            it[cantidad] = p.cantidad
+            it[disponible] = p.disponible
+            it[fechaCaducidad] = p.fecha_caducidad
+            it[tipoAlmacenamiento] = p.tipo_almacenamiento
+        } > 0
     }
 }
