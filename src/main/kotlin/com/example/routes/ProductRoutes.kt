@@ -176,13 +176,16 @@ fun Route.productRoutes(
 
                 if (res.status == HttpStatusCode.OK) {
                     val body = res.body<JsonObject>()
-                    val text = body["candidates"]?.jsonArray?.get(0)?.jsonObject
+                    val rawText = body["candidates"]?.jsonArray?.get(0)?.jsonObject
                         ?.get("content")?.jsonObject
                         ?.get("parts")?.jsonArray?.get(0)?.jsonObject
                         ?.get("text")?.jsonPrimitive?.content ?: ""
 
-                    val json = text.replace("```json", "").replace("```", "").trim()
-                    call.respond(Json.parseToJsonElement(json))
+                    // Extractor robusto para listas JSON [ ... ]
+                    val jsonMatch = Regex("""\[.*\]""", RegexOption.DOT_MATCHES_ALL).find(rawText)
+                    val cleanJson = jsonMatch?.value ?: rawText.replace("```json", "").replace("```", "").trim()
+
+                    call.respond(Json.parseToJsonElement(cleanJson))
                 } else {
                     call.respond(HttpStatusCode.InternalServerError, "Error de Gemini")
                 }
@@ -234,13 +237,16 @@ fun Route.productRoutes(
 
                 if (res.status == HttpStatusCode.OK) {
                     val body = res.body<JsonObject>()
-                    val text = body["candidates"]?.jsonArray?.get(0)?.jsonObject
+                    val rawText = body["candidates"]?.jsonArray?.get(0)?.jsonObject
                         ?.get("content")?.jsonObject
                         ?.get("parts")?.jsonArray?.get(0)?.jsonObject
                         ?.get("text")?.jsonPrimitive?.content ?: ""
 
-                    val json = text.replace("```json", "").replace("```", "").trim()
-                    call.respond(Json.parseToJsonElement(json))
+                    // Extractor robusto para listas JSON [ ... ]
+                    val jsonMatch = Regex("""\[.*\]""", RegexOption.DOT_MATCHES_ALL).find(rawText)
+                    val cleanJson = jsonMatch?.value ?: rawText.replace("```json", "").replace("```", "").trim()
+
+                    call.respond(Json.parseToJsonElement(cleanJson))
                 } else {
                     call.respond(HttpStatusCode.InternalServerError, "IA Error")
                 }
@@ -284,14 +290,16 @@ fun Route.productRoutes(
 
                 if (res.status == HttpStatusCode.OK) {
                     val body = res.body<JsonObject>()
-                    val text = body["candidates"]?.jsonArray?.get(0)?.jsonObject
+                    val rawText = body["candidates"]?.jsonArray?.get(0)?.jsonObject
                         ?.get("content")?.jsonObject
                         ?.get("parts")?.jsonArray?.get(0)?.jsonObject
                         ?.get("text")?.jsonPrimitive?.content ?: ""
 
-                    val json = text.replace("```json", "").replace("```", "").trim()
+                    val cleanJson = Regex("""\{.*\}""", RegexOption.DOT_MATCHES_ALL).find(rawText)?.value
+                        ?: rawText.replace("```json", "").replace("```", "").trim()
+
                     try {
-                        val receta = Json.decodeFromString<RecetaDto>(json)
+                        val receta = Json.decodeFromString<RecetaDto>(cleanJson)
                         call.respond(receta)
                     } catch (e: Exception) {
                         println("DEPURACION_IA: Error al parsear JSON: ${e.message}")
