@@ -11,7 +11,7 @@ application {
     mainClass.set("com.example.ApplicationKt")
 }
 
-tasks.register<Jar>("fatJar") {
+tasks.register<Jar>("buildFatJar") {
     archiveBaseName.set("app-all")
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
@@ -19,6 +19,9 @@ tasks.register<Jar>("fatJar") {
     }
     from(sourceSets.main.get().output)
     from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    
+    // Excluir archivos de firma de librerías externas que causan errores de seguridad
+    exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
 }
 
 kotlin {
