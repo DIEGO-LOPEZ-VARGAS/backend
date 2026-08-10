@@ -181,12 +181,18 @@ fun Route.productRoutes(
                         ?.get("parts")?.jsonArray?.get(0)?.jsonObject
                         ?.get("text")?.jsonPrimitive?.content ?: ""
 
-                    // Extractor robusto para listas JSON [ ... ]
-                    val jsonMatch = Regex("""\[.*\]""", RegexOption.DOT_MATCHES_ALL).find(rawText)
+                    // Extractor robusto de JSON OBJETO { ... }
+                    val jsonMatch = Regex("""\{.*\}""", RegexOption.DOT_MATCHES_ALL).find(rawText)
                     val cleanJson = jsonMatch?.value ?: rawText.replace("```json", "").replace("```", "").trim()
 
-                    call.respond(Json.parseToJsonElement(cleanJson))
+                    try {
+                        call.respond(Json.parseToJsonElement(cleanJson))
+                    } catch (e: Exception) {
+                        println("DEPURACION_IA: Error parse Nutricion. Raw: $rawText")
+                        call.respond(HttpStatusCode.InternalServerError, "Error al procesar el análisis nutricional")
+                    }
                 } else {
+                    println("DEPURACION_IA: Error Gemini Nutricion (${res.status}): ${res.bodyAsText()}")
                     call.respond(HttpStatusCode.InternalServerError, "Error de Gemini")
                 }
             } catch (e: Exception) {
@@ -246,8 +252,14 @@ fun Route.productRoutes(
                     val jsonMatch = Regex("""\[.*\]""", RegexOption.DOT_MATCHES_ALL).find(rawText)
                     val cleanJson = jsonMatch?.value ?: rawText.replace("```json", "").replace("```", "").trim()
 
-                    call.respond(Json.parseToJsonElement(cleanJson))
+                    try {
+                        call.respond(Json.parseToJsonElement(cleanJson))
+                    } catch (e: Exception) {
+                        println("DEPURACION_IA: Error parse Vision. Raw: $rawText")
+                        call.respond(HttpStatusCode.InternalServerError, "Error al procesar la imagen")
+                    }
                 } else {
+                    println("DEPURACION_IA: Error Gemini Vision (${res.status}): ${res.bodyAsText()}")
                     call.respond(HttpStatusCode.InternalServerError, "IA Error")
                 }
             } catch (e: Exception) {
@@ -269,13 +281,12 @@ fun Route.productRoutes(
 
                 val prompt = "Genera una receta JSON con { \"titulo\": \"...\", \"ingredientes\": \"...\", \"pasos\": \"...\" } usando: ${request.ingredientes.joinToString()}"
 
-                // Usamos la URL estable v1 con el modelo flash estándar
-                val url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent"
-                println("DEPURACION_IA: Llamando a Gemini API v1 estable...")
+                // Restaurada versión Gemini 3 Flash Preview v1beta solicitada por el usuario
+                val url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent"
+                println("DEPURACION_IA: Llamando a Gemini 3 Flash Preview (v1beta)...")
 
                 val res = geminiClient.post(url) {
                     contentType(ContentType.Application.Json)
-                    // Enviamos la llave en la cabecera, que es más seguro y robusto
                     header("x-goog-api-key", geminiApiKey)
                     setBody(buildJsonObject {
                         putJsonArray("contents") {
@@ -295,20 +306,21 @@ fun Route.productRoutes(
                         ?.get("parts")?.jsonArray?.get(0)?.jsonObject
                         ?.get("text")?.jsonPrimitive?.content ?: ""
 
-                    val cleanJson = Regex("""\{.*\}""", RegexOption.DOT_MATCHES_ALL).find(rawText)?.value
-                        ?: rawText.replace("```json", "").replace("```", "").trim()
+                    // Extractor robusto para OBJETO JSON { ... }
+                    val jsonMatch = Regex("""\{.*\}""", RegexOption.DOT_MATCHES_ALL).find(rawText)
+                    val cleanJson = jsonMatch?.value ?: rawText.replace("```json", "").replace("```", "").trim()
 
                     try {
                         val receta = Json.decodeFromString<RecetaDto>(cleanJson)
                         call.respond(receta)
                     } catch (e: Exception) {
-                        println("DEPURACION_IA: Error al parsear JSON: ${e.message}")
+                        println("DEPURACION_IA: Error al parsear JSON Receta. Raw: $rawText")
                         call.respond(HttpStatusCode.InternalServerError, "Error al procesar la respuesta de la IA")
                     }
                 } else {
                     val errorBody = res.bodyAsText()
                     println("DEPURACION_IA: Error de Gemini (${res.status}): $errorBody")
-                    call.respond(HttpStatusCode.InternalServerError, "Google Gemini Error (${res.status}): $errorBody")
+                    call.respond(HttpStatusCode.InternalServerError, "Google Gemini Error (${res.status})")
                 }
             } catch (e: Exception) {
                 println("DEPURACION_IA: Excepción en el endpoint: ${e.message}")
