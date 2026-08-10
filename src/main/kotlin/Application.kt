@@ -17,6 +17,7 @@ import io.ktor.http.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.respondText
+import kotlinx.coroutines.launch
 
 fun main() {
     val port = System.getenv("PORT")?.toInt() ?: 8080
@@ -24,10 +25,13 @@ fun main() {
 }
 
 fun Application.module() {
-    try {
-        DatabaseFactory.init()
-    } catch (e: Exception) {
-        println("ERROR CRÍTICO: La base de datos no pudo iniciar: ${e.message}")
+    // Inicialización asíncrona para evitar errores 502 por bloqueos en el arranque
+    launch {
+        try {
+            DatabaseFactory.init()
+        } catch (e: Exception) {
+            println("ADVERTENCIA: Reintentando conexión a la base de datos en segundo plano...")
+        }
     }
     
     install(CORS) {

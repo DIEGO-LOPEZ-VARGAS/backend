@@ -17,29 +17,33 @@ object DatabaseFactory {
             }
 
             try {
-                // Regex más flexible para capturar user, password y el resto (host:port/db)
-                val regex = Regex("postgresql://([^:]+):([^@]+)@(.+)")
-                val match = regex.find(dbUrl)
+                // Parseo manual robusto para extraer credenciales de Railway
+                val uri = java.net.URI(dbUrl)
+                val userInfo = uri.userInfo ?: ""
+                val user = if (userInfo.contains(":")) userInfo.split(":")[0] else userInfo
+                val password = if (userInfo.contains(":")) userInfo.split(":")[1] else ""
+                val host = uri.host
+                val port = uri.port
+                val path = uri.path
                 
-                if (match != null) {
-                    val (user, password, hostAndDb) = match.destructured
-                    val jdbcUrl = "jdbc:postgresql://$hostAndDb"
+                val jdbcUrl = "jdbc:postgresql://$host:$port$path"
 
-                    println("Conectando a Postgres: $jdbcUrl")
+                println("Conectando a Postgres con URI: $jdbcUrl (Usuario: $user)")
 
-                    Database.connect(
-                        url = jdbcUrl,
-                        driver = "org.postgresql.Driver",
-                        user = user,
-                        password = password
-                    )
-                } else {
-                    println("Formato de DATABASE_URL no reconocido, intentando conexión directa...")
-                    Database.connect(dbUrl, driver = "org.postgresql.Driver")
-                }
+                Database.connect(
+                    url = jdbcUrl,
+                    driver = "org.postgresql.Driver",
+                    user = user,
+                    password = password
+                )
             } catch (e: Exception) {
-                println("Error parseando DB URL: ${e.message}. Usando H2 de respaldo.")
-                fallbackToH2()
+                println("Error parseando DB URI: ${e.message}. Probando conexión directa...")
+                try {
+                    Database.connect(dbUrl, driver = "org.postgresql.Driver")
+                } catch (e2: Exception) {
+                    println("Falla total de conexión: ${e2.message}. Usando H2 de respaldo.")
+                    fallbackToH2()
+                }
             }
         } else {
             println("No se detectó DATABASE_URL. Usando H2 en memoria.")
