@@ -12,7 +12,7 @@ application {
 }
 
 tasks.register<Jar>("buildFatJar") {
-    archiveBaseName.set("app-all")
+    archiveFileName.set("app-all.jar") // 🔥 Nombre fijo para que el Dockerfile nunca falle
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes["Main-Class"] = "com.example.ApplicationKt"

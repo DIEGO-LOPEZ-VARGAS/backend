@@ -9,26 +9,22 @@ object DatabaseFactory {
         val url = System.getenv("DATABASE_URL")
         println("--- Iniciando DatabaseFactory ---")
 
-        if (url != null && (url.startsWith("postgresql://") || url.startsWith("postgres://"))) {
-            val dbUrl = if (url.startsWith("postgres://")) {
-                url.replace("postgres://", "postgresql://")
-            } else {
-                url
-            }
+        if (!url.isNullOrBlank() && (url.startsWith("postgresql://") || url.startsWith("postgres://"))) {
+            val dbUrl = url.replace("postgres://", "postgresql://")
 
             try {
-                // Parseo manual robusto para extraer credenciales de Railway
+                // Parseo inteligente de URI de Railway
                 val uri = java.net.URI(dbUrl)
                 val userInfo = uri.userInfo ?: ""
                 val user = if (userInfo.contains(":")) userInfo.split(":")[0] else userInfo
                 val password = if (userInfo.contains(":")) userInfo.split(":")[1] else ""
                 val host = uri.host
-                val port = uri.port
+                val port = if (uri.port != -1) uri.port else 5432 // Default port 5432
                 val path = uri.path
                 
                 val jdbcUrl = "jdbc:postgresql://$host:$port$path"
 
-                println("Conectando a Postgres con URI: $jdbcUrl (Usuario: $user)")
+                println("Conectando a Postgres: $jdbcUrl (Usuario: $user)")
 
                 Database.connect(
                     url = jdbcUrl,
@@ -36,47 +32,36 @@ object DatabaseFactory {
                     user = user,
                     password = password
                 )
+
+                testConnection()
             } catch (e: Exception) {
-                println("Error parseando DB URI: ${e.message}. Probando conexión directa...")
-                try {
-                    Database.connect(dbUrl, driver = "org.postgresql.Driver")
-                } catch (e2: Exception) {
-                    println("Falla total de conexión: ${e2.message}. Usando H2 de respaldo.")
-                    fallbackToH2()
-                }
+                println("Error en conexión Postgres: ${e.message}. Probando respaldo H2.")
+                fallbackToH2()
             }
         } else {
-            println("No se detectó DATABASE_URL. Usando H2 en memoria.")
+            println("No se detectó DATABASE_URL válida. Usando H2 en memoria.")
             fallbackToH2()
         }
+    }
 
+    private fun testConnection() {
         transaction {
             try {
-                // createMissingTablesAndColumns asegura que si añadimos una columna (como usuario_id),
-                // la base de datos se actualice sin borrar lo anterior.
                 SchemaUtils.createMissingTablesAndColumns(Usuarios, Frutas, Recetas, Compras, Actividades)
 
-                // Asegurar Admin con contraseña sencilla
+                // Asegurar Admin
                 val adminEmail = "admin@albahaca.com"
-                val exists = Usuarios.selectAll().where { Usuarios.email eq adminEmail }.count() > 0
-
-                if (!exists) {
+                if (Usuarios.selectAll().where { Usuarios.email eq adminEmail }.count() == 0L) {
                     Usuarios.insert {
                         it[nombre] = "Administrador"
                         it[email] = adminEmail
                         it[password] = "1234"
                         it[role] = "admin"
                     }
-                    println("Admin por defecto creado.")
-                } else {
-                    // Forzar contraseña simple por si quedó hasheada antes
-                    Usuarios.update({ Usuarios.email eq adminEmail }) {
-                        it[password] = "1234"
-                    }
-                    println("Password de Admin actualizado a '1234'.")
+                    println("Admin creado exitosamente.")
                 }
             } catch (e: Exception) {
-                println("Aviso: No se pudo verificar/crear tablas en el inicio: ${e.message}")
+                println("Aviso: No se pudo validar el esquema al inicio: ${e.message}")
             }
         }
     }
@@ -86,6 +71,7 @@ object DatabaseFactory {
             url = "jdbc:h2:mem:albahaca;DB_CLOSE_DELAY=-1;",
             driver = "org.h2.Driver"
         )
+        testConnection()
     }
 
     suspend fun <T> dbQuery(block: suspend () -> T): T =

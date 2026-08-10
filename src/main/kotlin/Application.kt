@@ -21,16 +21,18 @@ import kotlinx.coroutines.launch
 
 fun main() {
     val port = System.getenv("PORT")?.toInt() ?: 8080
+    println("--- Iniciando Servidor Albahaca en puerto $port ---")
     embeddedServer(Netty, port = port, host = "0.0.0.0", module = Application::module).start(wait = true)
 }
 
 fun Application.module() {
-    // Inicialización asíncrona para evitar errores 502 por bloqueos en el arranque
+    // Inicialización asíncrona para que Railway no de error 502 por demora en DB
     launch {
         try {
             DatabaseFactory.init()
+            println("--- Base de Datos Conectada y Lista ---")
         } catch (e: Exception) {
-            println("ADVERTENCIA: Reintentando conexión a la base de datos en segundo plano...")
+            println("ERROR: No se pudo conectar a la base de datos: ${e.message}")
         }
     }
     
@@ -39,6 +41,8 @@ fun Application.module() {
         allowMethod(HttpMethod.Options)
         allowMethod(HttpMethod.Post)
         allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Delete)
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
     }
@@ -59,9 +63,17 @@ fun Application.module() {
 
     routing {
         get("/") {
-            call.respondText("Albahaca Server Online")
+            call.respondText("Albahaca Server Online - v3.9")
         }
+        
+        // Endpoint de salud para Railway
+        get("/health") {
+            call.respondText("OK")
+        }
+
         authRoutes(userRepo)
         productRoutes(prodRepo, recRepo)
     }
+    
+    println("--- Rutas de API Configuradas ---")
 }
