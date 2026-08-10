@@ -8,6 +8,7 @@ import com.example.repository.UsuarioRepository
 import com.example.routes.authRoutes
 import com.example.routes.productRoutes
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.json.Json
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
@@ -34,7 +35,11 @@ fun Application.module() {
     }
 
     install(ContentNegotiation) {
-        json()
+        json(Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+            isLenient = true
+        })
     }
     
     configureSecurity()

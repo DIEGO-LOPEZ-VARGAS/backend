@@ -7,8 +7,9 @@ import com.example.security.PasswordHasher
 import org.jetbrains.exposed.sql.*
 
 class UsuarioRepository {
-    suspend fun findByEmail(email: String) = dbQuery {
-        Usuarios.selectAll().where { Usuarios.email eq email }
+    suspend fun findByEmail(identifier: String) = dbQuery {
+        Usuarios.selectAll()
+            .where { (Usuarios.email eq identifier) or (Usuarios.nombre eq identifier) }
             .map { rowToUser(it) }
             .singleOrNull()
     }
