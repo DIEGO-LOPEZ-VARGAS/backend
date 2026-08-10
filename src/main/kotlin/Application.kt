@@ -16,6 +16,7 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.http.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.response.respondText
 
 fun main() {
     val port = System.getenv("PORT")?.toInt() ?: 8080
@@ -23,7 +24,11 @@ fun main() {
 }
 
 fun Application.module() {
-    DatabaseFactory.init()
+    try {
+        DatabaseFactory.init()
+    } catch (e: Exception) {
+        println("ERROR CRÍTICO: La base de datos no pudo iniciar: ${e.message}")
+    }
     
     install(CORS) {
         anyHost()
@@ -49,6 +54,9 @@ fun Application.module() {
     val recRepo = RecetaRepository()
 
     routing {
+        get("/") {
+            call.respondText("Albahaca Server Online")
+        }
         authRoutes(userRepo)
         productRoutes(prodRepo, recRepo)
     }

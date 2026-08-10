@@ -47,28 +47,32 @@ object DatabaseFactory {
         }
 
         transaction {
-            // createMissingTablesAndColumns asegura que si añadimos una columna (como usuario_id),
-            // la base de datos se actualice sin borrar lo anterior.
-            SchemaUtils.createMissingTablesAndColumns(Usuarios, Frutas, Recetas, Compras, Actividades)
+            try {
+                // createMissingTablesAndColumns asegura que si añadimos una columna (como usuario_id),
+                // la base de datos se actualice sin borrar lo anterior.
+                SchemaUtils.createMissingTablesAndColumns(Usuarios, Frutas, Recetas, Compras, Actividades)
 
-            // Asegurar Admin con contraseña sencilla
-            val adminEmail = "admin@albahaca.com"
-            val exists = Usuarios.selectAll().where { Usuarios.email eq adminEmail }.count() > 0
+                // Asegurar Admin con contraseña sencilla
+                val adminEmail = "admin@albahaca.com"
+                val exists = Usuarios.selectAll().where { Usuarios.email eq adminEmail }.count() > 0
 
-            if (!exists) {
-                Usuarios.insert {
-                    it[nombre] = "Administrador"
-                    it[email] = adminEmail
-                    it[password] = "1234"
-                    it[role] = "admin"
+                if (!exists) {
+                    Usuarios.insert {
+                        it[nombre] = "Administrador"
+                        it[email] = adminEmail
+                        it[password] = "1234"
+                        it[role] = "admin"
+                    }
+                    println("Admin por defecto creado.")
+                } else {
+                    // Forzar contraseña simple por si quedó hasheada antes
+                    Usuarios.update({ Usuarios.email eq adminEmail }) {
+                        it[password] = "1234"
+                    }
+                    println("Password de Admin actualizado a '1234'.")
                 }
-                println("Admin por defecto creado.")
-            } else {
-                // Forzar contraseña simple por si quedó hasheada antes
-                Usuarios.update({ Usuarios.email eq adminEmail }) {
-                    it[password] = "1234"
-                }
-                println("Password de Admin actualizado a '1234'.")
+            } catch (e: Exception) {
+                println("Aviso: No se pudo verificar/crear tablas en el inicio: ${e.message}")
             }
         }
     }
