@@ -87,7 +87,7 @@ fun Route.productRoutes(
         post("/api/frutas") {
             val userId = call.userId()
             val f = call.receive<FrutaDto>()
-            prodRepo.addFruta(f, userId)
+            val saved = prodRepo.addFruta(f, userId)
 
             // Registrar actividad
             val userEmail = call.userEmail()
@@ -98,7 +98,8 @@ fun Route.productRoutes(
                 }
             }
 
-            call.respond(HttpStatusCode.Created, "Guardado")
+            if (saved != null) call.respond(HttpStatusCode.Created, saved)
+            else call.respond(HttpStatusCode.InternalServerError, "No se pudo guardar")
         }
 
         delete("/api/frutas/{id}") {
@@ -125,8 +126,9 @@ fun Route.productRoutes(
         post("/api/recetas") {
             val userId = call.userId()
             val r = call.receive<RecetaDto>()
-            recRepo.addReceta(r, userId)
-            call.respond(HttpStatusCode.Created, "Guardada")
+            val saved = recRepo.addReceta(r, userId)
+            if (saved != null) call.respond(HttpStatusCode.Created, saved)
+            else call.respond(HttpStatusCode.InternalServerError, "No se pudo guardar")
         }
 
         delete("/api/recetas/{id}") {
@@ -338,8 +340,9 @@ fun Route.productRoutes(
         post("/api/compras") {
             val userId = call.userId()
             val p = call.receive<ProductoDto>()
-            prodRepo.addCompra(p, userId)
-            call.respond(HttpStatusCode.Created, "Agregado")
+            val saved = prodRepo.addCompra(p, userId)
+            if (saved != null) call.respond(HttpStatusCode.Created, saved)
+            else call.respond(HttpStatusCode.InternalServerError, "No se pudo guardar")
         }
 
         delete("/api/compras/{id}") {

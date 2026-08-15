@@ -19,6 +19,8 @@ class RecetaRepository {
             it[ingredientes] = r.ingredientes
             it[pasos] = r.pasos
             it[this.usuarioId] = usuarioId
+        }.resultedValues?.firstOrNull()?.let {
+            RecetaDto(it[Recetas.id], it[Recetas.titulo], it[Recetas.ingredientes], it[Recetas.pasos])
         }
     }
 

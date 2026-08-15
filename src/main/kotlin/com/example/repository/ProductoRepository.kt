@@ -22,6 +22,8 @@ class ProductoRepository {
             it[fechaCaducidad] = f.fecha_caducidad
             it[lugarAlmacenamiento] = f.lugar_almacenamiento
             it[this.usuarioId] = usuarioId
+        }.resultedValues?.firstOrNull()?.let {
+            FrutaDto(it[Frutas.id], it[Frutas.nombre], it[Frutas.cantidad], it[Frutas.fechaCaducidad], it[Frutas.lugarAlmacenamiento])
         }
     }
 
@@ -59,6 +61,15 @@ class ProductoRepository {
             it[fechaCaducidad] = p.fecha_caducidad
             it[tipoAlmacenamiento] = p.tipo_almacenamiento
             it[this.usuarioId] = usuarioId
+        }.resultedValues?.firstOrNull()?.let {
+            ProductoDto(
+                it[Compras.id], 
+                it[Compras.nombreProducto], 
+                it[Compras.cantidad], 
+                it[Compras.disponible],
+                it[Compras.fechaCaducidad],
+                it[Compras.tipoAlmacenamiento]
+            )
         }
     }
 
